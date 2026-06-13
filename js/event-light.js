@@ -522,7 +522,29 @@ function calculateDuration(i, arrayFrames) {
     return duration;
 }
 
-function saveData() {
+function ensureJSZip() {
+    return new Promise((resolve, reject) => {
+        if (typeof JSZip !== 'undefined') {
+            resolve();
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+        script.onload = () => resolve();
+        script.onerror = () => {
+            const fallback = document.createElement('script');
+            fallback.src = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+            fallback.onload = () => resolve();
+            fallback.onerror = () => reject(new Error('Unable to load JSZip'));
+            document.head.appendChild(fallback);
+        };
+        document.head.appendChild(script);
+    });
+}
+
+async function saveData() {
+    await ensureJSZip();
     let arrayInfoTest = [];
     let zip = new JSZip();
 
